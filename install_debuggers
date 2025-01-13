@@ -1,0 +1,35 @@
+#!/bin/bash
+
+INSTALLED_DIR="./installed_debuggers/"
+
+function install_c() {
+}
+
+function check() {
+	if which $1 2> /dev/null > /dev/null
+	then
+		echo -e "\x1b[32m+ \x1b[0m$1 is installed" 
+	else
+		echo -e "\x1b[31m- \x1b[0;1m$1 is not installed" 
+	fi
+}
+
+case "$1" in
+	c)
+		install_c
+		;;
+	check_health)
+		check "git"
+		check "node"
+		check "python"
+		;;
+	*)
+		echo "\
+	Ensure that you have the proper dependencies by running ./install_debuggers check_health
+	You can install a debugger using ./install_debuggers <language>
+	Available Languages are:
+		- c
+		"
+		;;
+esac
+
