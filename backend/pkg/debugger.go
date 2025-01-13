@@ -1,5 +1,12 @@
-package debugger;
+package debugger
+
+import (
+	"github.com/google/go-dap"
+)
 
 type Debugger interface {
-	Start()
+	Start() error
+	Kill() error
+	Send(any) error
+	Read() (dap.Message, error)
 }
