@@ -3,6 +3,7 @@ package c
 import (
 	"bufio"
 	"os/exec"
+	"reflect"
 
 	debugger "github.com/Fejiberglibstein/mem-debugger/debugger/pkg"
 	"github.com/google/go-dap"
@@ -10,7 +11,7 @@ import (
 
 type CClient struct {
 	debugger.Debugger
-	cmd   *exec.Cmd
+	cmd *exec.Cmd
 }
 
 func (c *CClient) Start() error {
@@ -22,7 +23,7 @@ func (c *CClient) Start() error {
 		return err
 	}
 
-	c.Send(dap.InitializeRequest{
+	c.SendAndWait(&dap.InitializeRequest{
 		Arguments: dap.InitializeRequestArguments{
 			ClientID:                            "",
 			ClientName:                          "",
@@ -41,7 +42,7 @@ func (c *CClient) Start() error {
 			SupportsArgsCanBeInterpretedByShell: false,
 			SupportsStartDebuggingRequest:       false,
 		},
-	})
+	}, reflect.TypeOf(dap.InitializeResponse{}))
 
 	return nil
 }
