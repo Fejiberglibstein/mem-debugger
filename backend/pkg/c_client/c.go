@@ -1,4 +1,4 @@
-package c_debugger
+package c_client
 
 import (
 	"bufio"
