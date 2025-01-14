@@ -1,7 +1,8 @@
-package c
+package c_debugger
 
 import (
 	"bufio"
+	"fmt"
 	"os/exec"
 	"reflect"
 
@@ -16,33 +17,43 @@ type CClient struct {
 
 func (c *CClient) Start() error {
 	c.cmd = exec.Command("../installed_debuggers/codelldb/extension/adapter/codelldb")
-	c.Writer = bufio.NewWriter(c.cmd.Stdout)
-	c.Reader = bufio.NewReader(c.cmd.Stdin)
+
+	c.Debugger = debugger.NewDebugger(
+		bufio.NewWriter(c.cmd.Stdout),
+		bufio.NewReader(c.cmd.Stdin),
+	)
 
 	if err := c.cmd.Start(); err != nil {
 		return err
 	}
 
-	c.SendAndWait(&dap.InitializeRequest{
+	res, err := c.SendAndWait(&dap.InitializeRequest{
 		Arguments: dap.InitializeRequestArguments{
-			ClientID:                            "",
-			ClientName:                          "",
-			AdapterID:                           "",
-			Locale:                              "",
-			LinesStartAt1:                       false,
-			ColumnsStartAt1:                     false,
-			PathFormat:                          "",
-			SupportsVariableType:                false,
-			SupportsVariablePaging:              false,
+			ClientID:                 "mem-debugger",
+			ClientName:               "mem-debugger",
+			AdapterID:                "mem-debugger",
+			Locale:                   "en-US",
+			LinesStartAt1:            false,
+			ColumnsStartAt1:          false,
+			SupportsMemoryReferences: true,
+			PathFormat:               "path",
+			SupportsVariableType:     true,
+			SupportsVariablePaging:   false,
+
+			// Ignore these for now, maybe they are useful though
+			SupportsMemoryEvent:                 false,
 			SupportsRunInTerminalRequest:        false,
-			SupportsMemoryReferences:            false,
+			SupportsArgsCanBeInterpretedByShell: false,
 			SupportsProgressReporting:           false,
 			SupportsInvalidatedEvent:            false,
-			SupportsMemoryEvent:                 false,
-			SupportsArgsCanBeInterpretedByShell: false,
 			SupportsStartDebuggingRequest:       false,
 		},
 	}, reflect.TypeOf(dap.InitializeResponse{}))
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(res)
 
 	return nil
 }
