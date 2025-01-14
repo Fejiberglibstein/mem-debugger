@@ -8,32 +8,43 @@ import (
 	"github.com/google/go-dap"
 )
 
-type CDebugger struct {
+type CClient struct {
+	debugger.Debugger
 	cmd   *exec.Cmd
-	write *bufio.Writer
-	read  *bufio.Reader
 }
 
-func (c *CDebugger) Start() error {
+func (c *CClient) Start() error {
 	c.cmd = exec.Command("../installed_debuggers/codelldb/extension/adapter/codelldb")
-	c.write = bufio.NewWriter(c.cmd.Stdout)
-	c.read = bufio.NewReader(c.cmd.Stdin)
+	c.Writer = bufio.NewWriter(c.cmd.Stdout)
+	c.Reader = bufio.NewReader(c.cmd.Stdin)
 
 	if err := c.cmd.Start(); err != nil {
 		return err
 	}
 
-	c.Send(dap.InitializeRequest{})
+	c.Send(dap.InitializeRequest{
+		Arguments: dap.InitializeRequestArguments{
+			ClientID:                            "",
+			ClientName:                          "",
+			AdapterID:                           "",
+			Locale:                              "",
+			LinesStartAt1:                       false,
+			ColumnsStartAt1:                     false,
+			PathFormat:                          "",
+			SupportsVariableType:                false,
+			SupportsVariablePaging:              false,
+			SupportsRunInTerminalRequest:        false,
+			SupportsMemoryReferences:            false,
+			SupportsProgressReporting:           false,
+			SupportsInvalidatedEvent:            false,
+			SupportsMemoryEvent:                 false,
+			SupportsArgsCanBeInterpretedByShell: false,
+			SupportsStartDebuggingRequest:       false,
+		},
+	})
 
 	return nil
 }
 
-func (c *CDebugger) Send(m any) error {
-	return dap.WriteProtocolMessage(c.write, debugger.ConstructRequest(m))
-}
-func (c *CDebugger) Read() (dap.Message, error) {
-	return dap.ReadProtocolMessage(c.read)
-}
-
-func (c *CDebugger) Kill() {
+func (c *CClient) Kill() {
 }
