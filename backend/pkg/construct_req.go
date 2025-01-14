@@ -7,193 +7,104 @@ import (
 
 var seq int
 
-func ConstructRequest(t any) dap.Message {
-	req := dap.Request{
-		ProtocolMessage: dap.ProtocolMessage{
-			Seq:  seq,
-			Type: "request",
-		},
-	}
+func ConstructRequest(t dap.RequestMessage) dap.Message {
+	req := t.GetRequest()
+
+	req.Seq = seq
+	req.Type = "request"
 	seq += 1
-	switch m := t.(type) {
-	case dap.CancelRequest:
+
+	switch t.(type) {
+	case *dap.CancelRequest:
 		req.Command = "cancel"
-		m.Request = req
-		return &m
-	case dap.RunInTerminalRequest:
+	case *dap.RunInTerminalRequest:
 		req.Command = "runInTerminal"
-		m.Request = req
-		return &m
-	case dap.StartDebuggingRequest:
+	case *dap.StartDebuggingRequest:
 		req.Command = "startDebugging"
-		m.Request = req
-		return &m
-	case dap.InitializeRequest:
+	case *dap.InitializeRequest:
 		req.Command = "initialize"
-		m.Request = req
-		return &m
-	case dap.ConfigurationDoneRequest:
+	case *dap.ConfigurationDoneRequest:
 		req.Command = "configurationDone"
-		m.Request = req
-		return &m
-	case dap.LaunchRequest:
+	case *dap.LaunchRequest:
 		req.Command = "launch"
-		m.Request = req
-		return &m
-	case dap.AttachRequest:
+	case *dap.AttachRequest:
 		req.Command = "attach"
-		m.Request = req
-		return &m
-	case dap.RestartRequest:
+	case *dap.RestartRequest:
 		req.Command = "restart"
-		m.Request = req
-		return &m
-	case dap.DisconnectRequest:
+	case *dap.DisconnectRequest:
 		req.Command = "disconnect"
-		m.Request = req
-		return &m
-	case dap.TerminateRequest:
+	case *dap.TerminateRequest:
 		req.Command = "terminate"
-		m.Request = req
-		return &m
-	case dap.BreakpointLocationsRequest:
+	case *dap.BreakpointLocationsRequest:
 		req.Command = "breakpointLocations"
-		m.Request = req
-		return &m
-	case dap.SetBreakpointsRequest:
+	case *dap.SetBreakpointsRequest:
 		req.Command = "setBreakpoints"
-		m.Request = req
-		return &m
-	case dap.SetFunctionBreakpointsRequest:
+	case *dap.SetFunctionBreakpointsRequest:
 		req.Command = "setFunctionBreakpoints"
-		m.Request = req
-		return &m
-	case dap.SetExceptionBreakpointsRequest:
+	case *dap.SetExceptionBreakpointsRequest:
 		req.Command = "setExceptionBreakpoints"
-		m.Request = req
-		return &m
-	case dap.DataBreakpointInfoRequest:
+	case *dap.DataBreakpointInfoRequest:
 		req.Command = "dataBreakpointInfo"
-		m.Request = req
-		return &m
-	case dap.SetDataBreakpointsRequest:
+	case *dap.SetDataBreakpointsRequest:
 		req.Command = "setDataBreakpoints"
-		m.Request = req
-		return &m
-	case dap.SetInstructionBreakpointsRequest:
+	case *dap.SetInstructionBreakpointsRequest:
 		req.Command = "setInstructionBreakpoints"
-		m.Request = req
-		return &m
-	case dap.ContinueRequest:
+	case *dap.ContinueRequest:
 		req.Command = "continue"
-		m.Request = req
-		return &m
-	case dap.NextRequest:
+	case *dap.NextRequest:
 		req.Command = "next"
-		m.Request = req
-		return &m
-	case dap.StepInRequest:
+	case *dap.StepInRequest:
 		req.Command = "stepIn"
-		m.Request = req
-		return &m
-	case dap.StepOutRequest:
+	case *dap.StepOutRequest:
 		req.Command = "stepOut"
-		m.Request = req
-		return &m
-	case dap.StepBackRequest:
+	case *dap.StepBackRequest:
 		req.Command = "stepBack"
-		m.Request = req
-		return &m
-	case dap.ReverseContinueRequest:
+	case *dap.ReverseContinueRequest:
 		req.Command = "reverseContinue"
-		m.Request = req
-		return &m
-	case dap.RestartFrameRequest:
+	case *dap.RestartFrameRequest:
 		req.Command = "restartFrame"
-		m.Request = req
-		return &m
-	case dap.GotoRequest:
+	case *dap.GotoRequest:
 		req.Command = "goto"
-		m.Request = req
-		return &m
-	case dap.PauseRequest:
+	case *dap.PauseRequest:
 		req.Command = "pause"
-		m.Request = req
-		return &m
-	case dap.StackTraceRequest:
+	case *dap.StackTraceRequest:
 		req.Command = "stackTrace"
-		m.Request = req
-		return &m
-	case dap.ScopesRequest:
+	case *dap.ScopesRequest:
 		req.Command = "scopes"
-		m.Request = req
-		return &m
-	case dap.VariablesRequest:
+	case *dap.VariablesRequest:
 		req.Command = "variables"
-		m.Request = req
-		return &m
-	case dap.SetVariableRequest:
+	case *dap.SetVariableRequest:
 		req.Command = "setVariable"
-		m.Request = req
-		return &m
-	case dap.SourceRequest:
+	case *dap.SourceRequest:
 		req.Command = "source"
-		m.Request = req
-		return &m
-	case dap.ThreadsRequest:
+	case *dap.ThreadsRequest:
 		req.Command = "threads"
-		m.Request = req
-		return &m
-	case dap.TerminateThreadsRequest:
+	case *dap.TerminateThreadsRequest:
 		req.Command = "terminateThreads"
-		m.Request = req
-		return &m
-	case dap.ModulesRequest:
+	case *dap.ModulesRequest:
 		req.Command = "modules"
-		m.Request = req
-		return &m
-	case dap.LoadedSourcesRequest:
+	case *dap.LoadedSourcesRequest:
 		req.Command = "loadedSources"
-		m.Request = req
-		return &m
-	case dap.EvaluateRequest:
+	case *dap.EvaluateRequest:
 		req.Command = "evaluate"
-		m.Request = req
-		return &m
-	case dap.SetExpressionRequest:
+	case *dap.SetExpressionRequest:
 		req.Command = "setExpression"
-		m.Request = req
-		return &m
-	case dap.StepInTargetsRequest:
+	case *dap.StepInTargetsRequest:
 		req.Command = "stepInTargets"
-		m.Request = req
-		return &m
-	case dap.GotoTargetsRequest:
+	case *dap.GotoTargetsRequest:
 		req.Command = "gotoTargets"
-		m.Request = req
-		return &m
-	case dap.CompletionsRequest:
+	case *dap.CompletionsRequest:
 		req.Command = "completions"
-		m.Request = req
-		return &m
-	case dap.ExceptionInfoRequest:
+	case *dap.ExceptionInfoRequest:
 		req.Command = "exceptionInfo"
-		m.Request = req
-		return &m
-	case dap.ReadMemoryRequest:
+	case *dap.ReadMemoryRequest:
 		req.Command = "readMemory"
-		m.Request = req
-		return &m
-	case dap.WriteMemoryRequest:
+	case *dap.WriteMemoryRequest:
 		req.Command = "writeMemory"
-		m.Request = req
-		return &m
-	case dap.DisassembleRequest:
+	case *dap.DisassembleRequest:
 		req.Command = "disassemble"
-		m.Request = req
-		return &m
 	default:
 		log.Fatal("Not a valid request")
-		return nil
 	}
+	return t
 }
