@@ -3,12 +3,10 @@ package c_client
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
-	"net"
+	"io"
+	"os"
 	"os/exec"
-	"time"
 
 	debugger "github.com/Fejiberglibstein/mem-debugger/debugger/pkg"
 	"github.com/google/go-dap"
@@ -24,38 +22,27 @@ type CClient struct {
 func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	c.cmd = exec.Command(
 		"../installed_debuggers/codelldb/extension/adapter/codelldb",
-		"--port",
-		PORT,
+	)
+
+	c.cmd.Env = []string{"RUST_LOG=trace"}
+	stdout, _ := c.cmd.StdoutPipe()
+	stdin, _ := c.cmd.StdinPipe()
+	stderr, _ := c.cmd.StderrPipe()
+
+	go func() {
+		io.Copy(os.Stdout, stderr)
+	}()
+
+	c.Debugger = debugger.NewDebugger(
+		bufio.NewWriter(stdin),
+		bufio.NewReader(stdout),
 	)
 
 	if err := c.cmd.Start(); err != nil {
 		return err
 	}
 
-	var conn net.Conn
-	var err error
-	tries := 0
-	for {
-		time.Sleep(500 * time.Millisecond)
-		conn, err = net.Dial("tcp", net.JoinHostPort("localhost", PORT))
-
-		if err == nil {
-			break
-		}
-
-		log.Print(err)
-		tries += 1
-		if tries > 10 {
-			return errors.New("Could not connect to the debugger for codelldb on port " + PORT)
-		}
-	}
-
-	c.Debugger = debugger.NewDebugger(
-		bufio.NewWriter(conn),
-		bufio.NewReader(conn),
-	)
-
-	err = c.SendMessage(
+	err := c.SendMessage(
 		&dap.InitializeRequest{
 			Arguments: dap.InitializeRequestArguments{
 				ClientID:                 "mem-debugger",
@@ -85,7 +72,7 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		return err
 	}
 
-	fmt.Print(res)
+	fmt.Println(res)
 
 	// Override the default value, it should always be true
 	launchArgs["stopOnEntry"] = true
