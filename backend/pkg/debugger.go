@@ -3,10 +3,21 @@ package debugger
 import (
 	"bufio"
 	"errors"
+	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/google/go-dap"
 )
+
+// Simple wrapper around the dap.ErrorResponse struct
+type DebuggerError struct {
+	dap.ErrorResponse
+}
+
+func (e *DebuggerError) Error() string {
+	return e.Message
+}
 
 // Struct Wrapper to handle all the sending and receiving of dap Messages
 //
@@ -34,7 +45,7 @@ type Client interface {
 	//
 	// The passed in parameters will be the launch configuration for the
 	// debugger, these should be passed in directly to the `launch` request
-	Start(map[string] interface{}) error
+	Start(map[string]interface{}) error
 	Kill() error
 
 	// These are implemented by `Debugger`, so by embedding the struct into your
@@ -64,12 +75,13 @@ type Client interface {
 func (c *Debugger) SendMessage(m dap.RequestMessage) error {
 	err := dap.WriteProtocolMessage(c.writer, ConstructRequest(m))
 	err2 := c.writer.Flush()
-	return errors.Join(err, err2)
+	return fmt.Errorf("Could not send message: \n%w\n%w\n", err, err2)
 }
 
 // Read the first message that the debugger returns
 func (c *Debugger) ReadMessage() (dap.Message, error) {
-	return dap.ReadProtocolMessage(c.reader)
+	res, err := dap.ReadProtocolMessage(c.reader)
+	return res, fmt.Errorf("Could not read message: %w", err)
 }
 
 // Send a request, and wait for a specific response.
@@ -91,8 +103,9 @@ func (c *Debugger) SendAndWait(
 	req dap.RequestMessage,
 	desiredType reflect.Type,
 ) (dap.Message, error) {
-	c.SendMessage(req)
-	return c.WaitFor(desiredType)
+	err := c.SendMessage(req)
+	res, err2 := c.WaitFor(desiredType)
+	return res, errors.Join(err, err2)
 }
 
 // Wait for *any* message from the debugger, accepting only the message that
@@ -116,6 +129,11 @@ func (c *Debugger) WaitFor(desiredType reflect.Type) (dap.Message, error) {
 			return resp, nil
 		}
 
+		if er, ok := resp.(*dap.ErrorResponse); ok {
+			return nil, &DebuggerError{*er}
+		}
+
+		log.Printf("%+v\n\n", resp)
 		if ev, ok := resp.(dap.EventMessage); ok {
 			c.OnEvent(ev)
 		}
