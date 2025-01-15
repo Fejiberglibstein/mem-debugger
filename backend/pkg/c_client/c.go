@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
+	"reflect"
 
 	debugger "github.com/Fejiberglibstein/mem-debugger/debugger/pkg"
 	"github.com/google/go-dap"
@@ -24,14 +23,14 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		"../installed_debuggers/codelldb/extension/adapter/codelldb",
 	)
 
-	c.cmd.Env = []string{"RUST_LOG=trace"}
 	stdout, _ := c.cmd.StdoutPipe()
 	stdin, _ := c.cmd.StdinPipe()
-	stderr, _ := c.cmd.StderrPipe()
 
-	go func() {
-		io.Copy(os.Stdout, stderr)
-	}()
+	// stderr, _ := c.cmd.StderrPipe()
+	// c.cmd.Env = []string{"RUST_LOG=trace"}
+	// go func() {
+	// 	io.Copy(os.Stdout, stderr)
+	// }()
 
 	c.Debugger = debugger.NewDebugger(
 		bufio.NewWriter(stdin),
@@ -42,7 +41,7 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		return err
 	}
 
-	err := c.SendMessage(
+	res, err := c.SendAndWait(
 		&dap.InitializeRequest{
 			Arguments: dap.InitializeRequestArguments{
 				ClientID:                 "mem-debugger",
@@ -64,15 +63,19 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 				SupportsInvalidatedEvent:            false,
 				SupportsStartDebuggingRequest:       false,
 			},
-		})
-
-	res, err := c.ReadMessage()
+		},
+		reflect.TypeOf(&dap.InitializeResponse{}),
+	)
 
 	if err != nil {
 		return err
 	}
-
 	fmt.Println(res)
+
+	// if _, err = c.WaitFor(reflect.TypeOf(&dap.InitializedEvent{})); err != nil {
+	// 	return nil
+	// }
+	// fmt.Println(res)
 
 	// Override the default value, it should always be true
 	launchArgs["stopOnEntry"] = true
@@ -82,15 +85,16 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		return nil
 	}
 
-	err = c.SendMessage(&dap.LaunchRequest{Arguments: launch})
-	res, err = c.ReadMessage()
-	fmt.Print(res)
+	res, err = c.SendAndWait(
+		&dap.LaunchRequest{Arguments: launch},
+		reflect.TypeOf(&dap.LaunchResponse{}),
+	)
+
+	fmt.Printf("%+v\n", res)
 
 	if err != nil {
 		return err
 	}
-
-	fmt.Print(res)
 
 	return nil
 }
