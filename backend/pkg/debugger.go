@@ -2,6 +2,7 @@ package debugger
 
 import (
 	"bufio"
+	"errors"
 	"reflect"
 
 	"github.com/google/go-dap"
@@ -61,7 +62,9 @@ type Client interface {
 //
 // ```
 func (c *Debugger) SendMessage(m dap.RequestMessage) error {
-	return dap.WriteProtocolMessage(c.writer, ConstructRequest(m))
+	err := dap.WriteProtocolMessage(c.writer, ConstructRequest(m))
+	err2 := c.writer.Flush()
+	return errors.Join(err, err2)
 }
 
 // Read the first message that the debugger returns
