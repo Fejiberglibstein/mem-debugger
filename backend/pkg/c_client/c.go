@@ -3,7 +3,6 @@ package c_client
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"reflect"
 
@@ -41,7 +40,7 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		return err
 	}
 
-	res, err := c.SendAndWait(
+	_, err := c.SendAndWait(
 		&dap.InitializeRequest{
 			Arguments: dap.InitializeRequestArguments{
 				ClientID:                 "mem-debugger",
@@ -70,7 +69,6 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(res)
 
 	// if _, err = c.WaitFor(reflect.TypeOf(&dap.InitializedEvent{})); err != nil {
 	// 	return nil
@@ -85,12 +83,10 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		return nil
 	}
 
-	res, err = c.SendAndWait(
+	_, err = c.SendAndWait(
 		&dap.LaunchRequest{Arguments: launch},
 		reflect.TypeOf(&dap.LaunchResponse{}),
 	)
-
-	fmt.Printf("%+v\n", res)
 
 	if err != nil {
 		return err
