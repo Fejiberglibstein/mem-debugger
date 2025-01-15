@@ -19,7 +19,7 @@ type CClient struct {
 
 func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	c.cmd = exec.Command(
-		"../installed_debuggers/codelldb/extension/adapter/codelldb",
+		".../installed_debuggers/codelldb/extension/adapter/codelldb",
 	)
 
 	stdout, _ := c.cmd.StdoutPipe()

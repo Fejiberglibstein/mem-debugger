@@ -75,13 +75,20 @@ type Client interface {
 func (c *Debugger) SendMessage(m dap.RequestMessage) error {
 	err := dap.WriteProtocolMessage(c.writer, ConstructRequest(m))
 	err2 := c.writer.Flush()
-	return fmt.Errorf("Could not send message: \n%w\n%w\n", err, err2)
+	if err != nil || err2 != nil {
+		return fmt.Errorf("Could not send message: \n%w\n%w\n", err, err2)
+	}
+
+	return nil
 }
 
 // Read the first message that the debugger returns
 func (c *Debugger) ReadMessage() (dap.Message, error) {
 	res, err := dap.ReadProtocolMessage(c.reader)
-	return res, fmt.Errorf("Could not read message: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read message: %w", err)
+	}
+	return res, nil
 }
 
 // Send a request, and wait for a specific response.
@@ -133,9 +140,9 @@ func (c *Debugger) WaitFor(desiredType reflect.Type) (dap.Message, error) {
 			return nil, &DebuggerError{*er}
 		}
 
-		log.Printf("%+v\n\n", resp)
 		if ev, ok := resp.(dap.EventMessage); ok {
 			c.OnEvent(ev)
 		}
+		log.Printf("%+v\n\n", resp)
 	}
 }
