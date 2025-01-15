@@ -30,7 +30,10 @@ func NewDebugger(writer *bufio.Writer, reader *bufio.Reader) Debugger {
 type Client interface {
 	// Start the debugger client by running whatever commands needed to set it
 	// up, and sending the `Initialize` and `Launch` commands
-	Start() error
+	//
+	// The passed in parameters will be the launch configuration for the
+	// debugger, these should be passed in directly to the `launch` request
+	Start(map[string] interface{}) error
 	Kill() error
 
 	// These are implemented by `Debugger`, so by embedding the struct into your
@@ -90,12 +93,12 @@ func (c *Debugger) SendAndWait(
 }
 
 // Wait for *any* message from the debugger, accepting only the message that
-// matches the type passed in. 
+// matches the type passed in.
 //
 // Usually, you will want to use the more powerful [SendAndWait] function,
 // though this function is useful if you would like to wait for a specific event
 // to happen.
-// 
+//
 // Note that if you are waiting for a specific event to happen, the event may
 // end up getting skipped and passed through the `OnEvent` callback. This
 // behavior may be changed in the future, though.

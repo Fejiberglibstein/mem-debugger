@@ -2,12 +2,12 @@ package c_client
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net"
 	"os/exec"
-	"reflect"
 	"time"
 
 	debugger "github.com/Fejiberglibstein/mem-debugger/debugger/pkg"
@@ -21,7 +21,7 @@ type CClient struct {
 	cmd *exec.Cmd
 }
 
-func (c *CClient) Start() error {
+func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	c.cmd = exec.Command(
 		"../installed_debuggers/codelldb/extension/adapter/codelldb",
 		"--port",
@@ -55,30 +55,50 @@ func (c *CClient) Start() error {
 		bufio.NewReader(conn),
 	)
 
-	res, err := c.SendAndWait(&dap.InitializeRequest{
-		Arguments: dap.InitializeRequestArguments{
-			ClientID:                 "mem-debugger",
-			ClientName:               "mem-debugger",
-			AdapterID:                "mem-debugger",
-			Locale:                   "en-US",
-			LinesStartAt1:            false,
-			ColumnsStartAt1:          false,
-			SupportsMemoryReferences: true,
-			PathFormat:               "path",
-			SupportsVariableType:     true,
-			SupportsVariablePaging:   false,
+	err = c.SendMessage(
+		&dap.InitializeRequest{
+			Arguments: dap.InitializeRequestArguments{
+				ClientID:                 "mem-debugger",
+				ClientName:               "mem-debugger",
+				AdapterID:                "mem-debugger",
+				Locale:                   "en-US",
+				LinesStartAt1:            false,
+				ColumnsStartAt1:          false,
+				SupportsMemoryReferences: true,
+				PathFormat:               "path",
+				SupportsVariableType:     true,
+				SupportsVariablePaging:   false,
 
-			// Ignore these for now, maybe they are useful though
-			SupportsMemoryEvent:                 false,
-			SupportsRunInTerminalRequest:        false,
-			SupportsArgsCanBeInterpretedByShell: false,
-			SupportsProgressReporting:           false,
-			SupportsInvalidatedEvent:            false,
-			SupportsStartDebuggingRequest:       false,
-		},
-	},
-		reflect.TypeOf(dap.InitializeResponse{}),
-	)
+				// Ignore these for now, maybe they are useful though
+				SupportsMemoryEvent:                 false,
+				SupportsRunInTerminalRequest:        false,
+				SupportsArgsCanBeInterpretedByShell: false,
+				SupportsProgressReporting:           false,
+				SupportsInvalidatedEvent:            false,
+				SupportsStartDebuggingRequest:       false,
+			},
+		})
+
+	res, err := c.ReadMessage()
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(res)
+
+	// Override the default value, it should always be true
+	launchArgs["stopOnEntry"] = true
+
+	launch, err := json.Marshal(launchArgs)
+	if err != nil {
+		return nil
+	}
+
+	err = c.SendMessage(&dap.LaunchRequest{Arguments: launch})
+	res, err = c.ReadMessage()
+	fmt.Print(res)
+
 	if err != nil {
 		return err
 	}
