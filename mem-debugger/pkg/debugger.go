@@ -44,7 +44,7 @@ type Client interface {
 	//
 	// The passed in parameters will be the launch configuration for the
 	// debugger, these should be passed in directly to the `launch` request
-	Start(map[string]interface{}) error
+	Start(map[string]interface{}) (error, *dap.InitializeResponse)
 	Kill() error
 
 	// These are implemented by `Debugger`, so by embedding the struct into your

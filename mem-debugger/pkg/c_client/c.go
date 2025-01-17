@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"reflect"
 
-	debugger "github.com/Fejiberglibstein/mem-debugger/debugger/pkg"
+	debugger "github.com/Fejiberglibstein/mem-debugger/mem-debugger/pkg"
 	"github.com/google/go-dap"
 )
 
@@ -17,7 +17,9 @@ type CClient struct {
 	cmd *exec.Cmd
 }
 
-func (c *CClient) Start(launchArgs map[string]interface{}) error {
+func (c *CClient) Start(
+	launchArgs map[string]interface{},
+) (*dap.InitializeResponse, error) {
 	c.cmd = exec.Command(
 		"../installed_debuggers/codelldb/extension/adapter/codelldb",
 	)
@@ -37,10 +39,10 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	)
 
 	if err := c.cmd.Start(); err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err := c.SendAndWait(
+	settings, err := c.SendAndWait(
 		&dap.InitializeRequest{
 			Arguments: dap.InitializeRequestArguments{
 				ClientID:                 "mem-debugger",
@@ -67,29 +69,34 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Override the default value, it should always be true
 	launchArgs["stopOnEntry"] = true
+	launchArgs["stdio"] = []string{"", "/dev/pts/3", ""}
 
 	launch, err := json.Marshal(launchArgs)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	_, err = c.SendAndWait(
 		&dap.LaunchRequest{Arguments: launch},
 		reflect.TypeOf(&dap.InitializedEvent{}),
 	)
-
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	_, err = c.SendAndWait(
+		&dap.ConfigurationDoneRequest{},
+		reflect.TypeOf(&dap.ConfigurationDoneResponse{}),
+	)
+
+	return settings.(*dap.InitializeResponse), nil
 }
 
-func (c *CClient) Kill() {
-	c.cmd.Process.Kill()
+func (c *CClient) Kill() error {
+	return c.cmd.Process.Kill()
 }
