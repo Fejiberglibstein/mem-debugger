@@ -91,4 +91,5 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 }
 
 func (c *CClient) Kill() {
+	c.cmd.Process.Kill()
 }
