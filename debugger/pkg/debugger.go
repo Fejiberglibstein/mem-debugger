@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/google/go-dap"
@@ -143,6 +142,5 @@ func (c *Debugger) WaitFor(desiredType reflect.Type) (dap.Message, error) {
 		if ev, ok := resp.(dap.EventMessage); ok {
 			c.OnEvent(ev)
 		}
-		log.Printf("%+v\n\n", resp)
 	}
 }
