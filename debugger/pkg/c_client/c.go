@@ -19,7 +19,7 @@ type CClient struct {
 
 func (c *CClient) Start(launchArgs map[string]interface{}) error {
 	c.cmd = exec.Command(
-		".../installed_debuggers/codelldb/extension/adapter/codelldb",
+		"../installed_debuggers/codelldb/extension/adapter/codelldb",
 	)
 
 	stdout, _ := c.cmd.StdoutPipe()
@@ -70,11 +70,6 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 		return err
 	}
 
-	// if _, err = c.WaitFor(reflect.TypeOf(&dap.InitializedEvent{})); err != nil {
-	// 	return nil
-	// }
-	// fmt.Println(res)
-
 	// Override the default value, it should always be true
 	launchArgs["stopOnEntry"] = true
 
@@ -85,7 +80,7 @@ func (c *CClient) Start(launchArgs map[string]interface{}) error {
 
 	_, err = c.SendAndWait(
 		&dap.LaunchRequest{Arguments: launch},
-		reflect.TypeOf(&dap.LaunchResponse{}),
+		reflect.TypeOf(&dap.InitializedEvent{}),
 	)
 
 	if err != nil {
