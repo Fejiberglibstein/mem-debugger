@@ -1,4 +1,4 @@
-module github.com/Fejiberglibstein/mem-debugger/debugger
+module github.com/Fejiberglibstein/mem-debugger/mem-debugger
 
 go 1.23.1
 
