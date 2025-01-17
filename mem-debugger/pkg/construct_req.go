@@ -7,7 +7,7 @@ import (
 
 var seq int
 
-func ConstructRequest(t dap.RequestMessage) dap.Message {
+func constructRequest(t dap.RequestMessage) dap.Message {
 	req := t.GetRequest()
 
 	req.Seq = seq

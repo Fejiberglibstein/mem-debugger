@@ -72,7 +72,7 @@ type Client interface {
 //
 // ```
 func (c *Debugger) SendMessage(m dap.RequestMessage) error {
-	err := dap.WriteProtocolMessage(c.writer, ConstructRequest(m))
+	err := dap.WriteProtocolMessage(c.writer, constructRequest(m))
 	err2 := c.writer.Flush()
 	if err != nil || err2 != nil {
 		return fmt.Errorf("Could not send message: \n%w\n%w\n", err, err2)
